@@ -14,18 +14,18 @@ namespace WEBAPIVIEWS.Controllers
             [HttpGet]
             public IActionResult Index()
             {
-                List<Brand> brands = new List<Brand>();
+                List<Brands> brand = new List<Brands>();
                 HttpResponseMessage response = client.GetAsync(url).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
-                    var data = JsonConvert.DeserializeObject<List<Brand>>(result);
+                    var data = JsonConvert.DeserializeObject<List<Brands>>(result);
                     if (data != null)
                     {
-                        brands = data;
+                        brand = data;
                 }
                 }
-                return View(brands);
+                return View(brand);
             }
         [HttpGet]
         public IActionResult Create()
@@ -33,9 +33,9 @@ namespace WEBAPIVIEWS.Controllers
             return View();  
         }
         [HttpPost]
-        public IActionResult Create(Brand brands)
+        public IActionResult Create(Brands brand)
         {
-            String data = JsonConvert.SerializeObject(brands);
+            String data = JsonConvert.SerializeObject(brand);
             StringContent content = new StringContent(data,Encoding.UTF8,"application/json");
             HttpResponseMessage response =client.PostAsync(url, content).Result;
             if (response.IsSuccessStatusCode)
@@ -50,25 +50,25 @@ namespace WEBAPIVIEWS.Controllers
     [HttpGet]
     public IActionResult Edit(int id)
     {
-        Brand bd = new Brand();
+        Brands bd = new Brands();
         HttpResponseMessage response = client.GetAsync(url + id).Result;
             if(response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                var data = JsonConvert.DeserializeObject<Brand>(result);
+                var data = JsonConvert.DeserializeObject<Brands>(result);
                 if (data != null)
                 {
                     bd = data;
                 }
             }
-        return View();
+           return View(bd);
     }
-        [HttpPut]
-        public IActionResult Edit(Brand brands)
+        [HttpPost]
+        public IActionResult Edit(Brands brand)
         {
-            String data = JsonConvert.SerializeObject(brands);
+            string data = JsonConvert.SerializeObject(brand);
             StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = client.PutAsync(url + brands.id, content).Result;
+            HttpResponseMessage response = client.PutAsync((url + brand.ID), content).Result;
             if (response.IsSuccessStatusCode)
             {
                 TempData["update_message"] = "Brand Updated...";
@@ -76,7 +76,50 @@ namespace WEBAPIVIEWS.Controllers
             }
             return View();
         }
-
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            Brands bd = new Brands();
+            HttpResponseMessage response = client.GetAsync(url + id).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string result = response.Content.ReadAsStringAsync().Result;
+                var data = JsonConvert.DeserializeObject<Brands>(result);
+                if (data != null)
+                {
+                    bd = data;
+                }
+            }
+            return View(bd);
+        }
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            Brands bd = new Brands();
+            HttpResponseMessage response = client.GetAsync(url + id).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string result = response.Content.ReadAsStringAsync().Result;
+                var data = JsonConvert.DeserializeObject<Brands>(result);
+                if (data != null)
+                {
+                    bd = data;
+                }
+            }
+            return View(bd);
+        }
+        [HttpPost, ActionName("Delete")]
+        public IActionResult DeleteConfirmed(int id)
+        {
+          
+            HttpResponseMessage response = client.DeleteAsync(url + id).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["delete_message"] = "Brand Deleted...";
+                return RedirectToAction("Index");
+            }
+            return View();
+        }
     }
 
 }
