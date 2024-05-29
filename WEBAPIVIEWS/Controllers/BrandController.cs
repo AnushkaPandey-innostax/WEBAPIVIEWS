@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Security.Policy;
 using System.Text;
 using WEBAPIVIEWS.Models;
 
@@ -8,18 +7,25 @@ namespace WEBAPIVIEWS.Controllers
 {
     public class BrandController : Controller
     {
-
-            private string url = "http://localhost:5136/api/brands/";
+        WebapiviewsContext context;
+        IWebHostEnvironment env;
+    
+        public BrandController(WebapiviewsContext context, IWebHostEnvironment env)
+        {
+            this.context = context;
+            this.env = env;
+        }
+        private string url = "http://localhost:5136/api/brands/";
             private HttpClient client = new HttpClient();
             [HttpGet]
             public IActionResult Index()
             {
-                List<Brands> brand = new List<Brands>();
+                List<Brand> brand = new List<Brand>();
                 HttpResponseMessage response = client.GetAsync(url).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
-                    var data = JsonConvert.DeserializeObject<List<Brands>>(result);
+                    var data = JsonConvert.DeserializeObject<List<Brand>>(result);
                     if (data != null)
                     {
                         brand = data;
@@ -32,16 +38,33 @@ namespace WEBAPIVIEWS.Controllers
         {
             return View();  
         }
+        
         [HttpPost]
-        public IActionResult Create(Brands brand)
+        public IActionResult Create(ProductViewModel prod)
         {
-            String data = JsonConvert.SerializeObject(brand);
-            StringContent content = new StringContent(data,Encoding.UTF8,"application/json");
-            HttpResponseMessage response =client.PostAsync(url, content).Result;
-            if (response.IsSuccessStatusCode)
+             string fileName = "";
+            if (prod.photo != null)
             {
-                TempData["insert_message"] = "Brand Added...";
-                return RedirectToAction("Index");
+                string folder = Path.Combine(env.WebRootPath, "images");
+                fileName = Guid.NewGuid().ToString() + "_" + prod.photo.FileName;
+                string filePAth = Path.Combine(folder, fileName);
+                prod.photo.CopyTo(new FileStream(filePAth, FileMode.Create));
+                Brand brand = new Brand()
+                {
+                    Name = prod.Name,
+                    Price = prod.Price,
+                    Category = prod.Category,
+                    ImagePath = fileName,
+
+                };
+                String data = JsonConvert.SerializeObject(brand);
+                StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = client.PostAsync(url, content).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["insert_message"] = "Brand Added...";
+                    return RedirectToAction("Index");
+                }
             }
             return View();
         }
@@ -50,12 +73,12 @@ namespace WEBAPIVIEWS.Controllers
     [HttpGet]
     public IActionResult Edit(int id)
     {
-        Brands bd = new Brands();
+        Brand bd = new Brand();
         HttpResponseMessage response = client.GetAsync(url + id).Result;
             if(response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                var data = JsonConvert.DeserializeObject<Brands>(result);
+                var data = JsonConvert.DeserializeObject<Brand>(result);
                 if (data != null)
                 {
                     bd = data;
@@ -64,7 +87,7 @@ namespace WEBAPIVIEWS.Controllers
            return View(bd);
     }
         [HttpPost]
-        public IActionResult Edit(Brands brand)
+        public IActionResult Edit(Brand brand)
         {
             string data = JsonConvert.SerializeObject(brand);
             StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
@@ -79,12 +102,12 @@ namespace WEBAPIVIEWS.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
-            Brands bd = new Brands();
+            Brand bd = new Brand();
             HttpResponseMessage response = client.GetAsync(url + id).Result;
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                var data = JsonConvert.DeserializeObject<Brands>(result);
+                var data = JsonConvert.DeserializeObject<Brand>(result);
                 if (data != null)
                 {
                     bd = data;
@@ -95,12 +118,12 @@ namespace WEBAPIVIEWS.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            Brands bd = new Brands();
+            Brand bd = new Brand();
             HttpResponseMessage response = client.GetAsync(url + id).Result;
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                var data = JsonConvert.DeserializeObject<Brands>(result);
+                var data = JsonConvert.DeserializeObject<Brand>(result);
                 if (data != null)
                 {
                     bd = data;
@@ -123,3 +146,4 @@ namespace WEBAPIVIEWS.Controllers
     }
 
 }
+       
